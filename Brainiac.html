@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Brief — Ka</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080810;
+      --surface: #0f0f1a;
+      --card: #13131f;
+      --card-hover: #1a1a28;
+      --border: #1e1e2e;
+      --gold: #c9a84c;
+      --gold-light: #e8c97a;
+      --text: #e2e2e8;
+      --muted: #6b6b80;
+      --dim: #3a3a50;
+      --red: #e05c5c;
+      --blue: #5c9de0;
+      --green: #5ce0a0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Setup Screen ── */
+    #setup-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 2rem;
+    }
+
+    .setup-box {
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .setup-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .setup-tagline {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 300;
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .setup-label {
+      display: block;
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .setup-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .setup-input:focus { border-color: var(--gold); }
+
+    .setup-btn {
+      width: 100%;
+      background: var(--gold);
+      color: #080810;
+      border: none;
+      border-radius: 8px;
+      padding: 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.02em;
+    }
+
+    .setup-btn:hover { background: var(--gold-light); }
+    .setup-btn:active { transform: scale(0.98); }
+
+    .setup-note {
+      margin-top: 1.5rem;
+      font-size: 0.78rem;
+      color: var(--dim);
+      line-height: 1.7;
+    }
+
+    .setup-note a { color: var(--gold); text-decoration: none; }
+    .setup-note a:hover { text-decoration: underline; }
+
+    .setup-steps {
+      text-align: left;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 2;
+    }
+
+    .setup-steps strong { color: var(--text); }
+
+    /* ── Main App ── */
+    #app {
+      display: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      padding: 2rem 1.5rem 0;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .logo span { color: var(--text); font-style: italic; }
+
+    .logo-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.3rem;
+      font-weight: 400;
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .date-display {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.4rem 0.875rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    .refresh-icon { display: inline-block; transition: transform 0.1s; }
+    .refresh-btn.spinning .refresh-icon { animation: spin 0.9s linear infinite; }
+
+    .settings-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--dim);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .settings-btn:hover { border-color: var(--muted); color: var(--muted); }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .filters::-webkit-scrollbar { display: none; }
+
+    .filter-pill {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .filter-pill:hover { border-color: var(--gold); color: var(--gold); }
+    .filter-pill.active { background: var(--gold); border-color: var(--gold); color: #080810; font-weight: 600; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+      margin: 1.25rem 0;
+    }
+
+    /* Cards */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    #cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.375rem;
+      transition: all 0.2s;
+      animation: fadeUp 0.4s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-accent, var(--gold));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .card:hover {
+      background: var(--card-hover);
+      border-color: var(--dim);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .card:hover::after { opacity: 1; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.875rem;
+    }
+
+    .card-category {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.22rem 0.55rem;
+      border-radius: 4px;
+    }
+
+    .card-emoji { font-size: 1.3rem; line-height: 1; }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--text);
+      margin-bottom: 0.45rem;
+    }
+
+    .card-hook {
+      font-size: 0.78rem;
+      color: var(--gold);
+      font-style: italic;
+      margin-bottom: 0.875rem;
+      line-height: 1.55;
+    }
+
+    .card-content {
+      font-size: 0.855rem;
+      color: #a8a8bc;
+      line-height: 1.75;
+      margin-bottom: 0.875rem;
+    }
+
+    .bond-tip {
+      background: rgba(92, 224, 160, 0.05);
+      border-left: 2px solid var(--green);
+      padding: 0.55rem 0.7rem;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 0.875rem;
+    }
+
+    .bond-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 0.2rem;
+    }
+
+    .bond-text {
+      font-size: 0.8rem;
+      color: #88b898;
+      line-height: 1.55;
+    }
+
+    .yt-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 0.3rem 0.65rem;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+
+    .yt-link:hover { color: #ff5555; border-color: #ff5555; }
+
+    /* Loading */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 0.4rem;
+    }
+
+    .loading-sub { font-size: 0.78rem; color: var(--dim); }
+
+    /* Error */
+    #error-state {
+      display: none;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+
+    .error-msg {
+      color: var(--red);
+      font-size: 0.88rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .retry-btn {
+      background: transparent;
+      border: 1px solid var(--red);
+      color: var(--red);
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .retry-btn:hover { background: var(--red); color: white; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      header { padding: 1.25rem 1rem 0; }
+      main { padding: 0 1rem 3rem; }
+      .logo { font-size: 1.6rem; }
+      #cards-grid { grid-template-columns: 1fr; }
+      .header-top { flex-direction: column; }
+      .header-right { align-items: flex-start; }
+      .date-display { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Setup Screen ── -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <div class="setup-logo">Daily Brief</div>
+    <div class="setup-tagline">Your 5-minute daily intelligence</div>
+
+    <div class="setup-steps">
+      <strong>One-time setup (2 minutes):</strong><br>
+      1. Go to <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--gold)">aistudio.google.com/apikey</a><br>
+      2. Sign in with any Google account<br>
+      3. Click "Create API Key" → copy it<br>
+      4. Paste below ↓
+    </div>
+
+    <label class="setup-label" for="api-key-input">Gemini API Key</label>
+    <input
+      type="password"
+      id="api-key-input"
+      class="setup-input"
+      placeholder="AIzaSy..."
+      autocomplete="off"
+      spellcheck="false"
+    />
+
+    <button class="setup-btn" id="start-btn" onclick="saveApiKey()">
+      Start My Brief →
+    </button>
+
+    <p class="setup-note">
+      Free tier: 15 requests/day — more than enough for daily use.<br>
+      Your key is stored only in <em>this browser</em>. Never sent anywhere except Google.
+    </p>
+  </div>
+</div>
+
+<!-- ── Main App ── -->
+<div id="app">
+  <header>
+    <div class="header-top">
+      <div>
+        <div class="logo">Daily <span>Brief</span></div>
+        <div class="logo-sub">Morning Intelligence · Ka</div>
+      </div>
+      <div class="header-right">
+        <div class="date-display" id="date-display"></div>
+        <div class="header-actions">
+          <button class="refresh-btn" id="refresh-btn" onclick="fetchBriefing(true)">
+            <span class="refresh-icon">↻</span> Refresh
+          </button>
+          <button class="settings-btn" onclick="showSetup()" title="Change API key">⚙</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="filter-pill active" data-filter="all"          onclick="filterCards('all',this)">All</button>
+      <button class="filter-pill"        data-filter="sports"       onclick="filterCards('sports',this)">⚽ Sports</button>
+      <button class="filter-pill"        data-filter="EPL"          onclick="filterCards('EPL',this)">🏴󠁧󠁢󠁥󠁮󠁧󠁿 EPL</button>
+      <button class="filter-pill"        data-filter="NBA"          onclick="filterCards('NBA',this)">🏀 NBA</button>
+      <button class="filter-pill"        data-filter="Golf"         onclick="filterCards('Golf',this)">⛳ Golf</button>
+      <button class="filter-pill"        data-filter="Horse Racing" onclick="filterCards('Horse Racing',this)">🐎 HKJC</button>
+      <button class="filter-pill"        data-filter="Tech"         onclick="filterCards('Tech',this)">💻 Tech</button>
+      <button class="filter-pill"        data-filter="Markets"      onclick="filterCards('Markets',this)">📈 Markets</button>
+      <button class="filter-pill"        data-filter="culture"      onclick="filterCards('culture',this)">🎬 Culture</button>
+    </div>
+
+    <div class="divider"></div>
+  </header>
+
+  <main>
+    <div id="loading">
+      <div class="spinner"></div>
+      <div class="loading-title">Fetching today's intelligence...</div>
+      <div class="loading-sub">Scanning sports results, markets & more — takes ~10 seconds</div>
+    </div>
+
+    <div id="error-state">
+      <div class="error-msg" id="error-msg"></div>
+      <button class="retry-btn" onclick="fetchBriefing(true)">Try Again</button>
+    </div>
+
+    <div id="cards-grid"></div>
+  </main>
+</div>
+
+<script>
+  // ── Constants ──────────────────────────────────────────────
+  const SPORTS_CATS  = ['EPL','NBA','Horse Racing','Golf','Tennis','Sports','F1','Cricket','Boxing','Rugby'];
+  const CULTURE_CATS = ['Pop Culture','History','Art','Philosophy','Psychology','Business','Science',
+                        'Health','Food & Wine','Etymology','Geopolitics','Tech','Markets'];
+
+  const CAT_COLORS = {
+    'EPL':          { bg:'rgba(92,157,224,0.12)',  color:'#5c9de0' },
+    'NBA':          { bg:'rgba(224,92,92,0.12)',   color:'#e05c5c' },
+    'Horse Racing': { bg:'rgba(201,168,76,0.15)',  color:'#c9a84c' },
+    'Golf':         { bg:'rgba(92,224,160,0.1)',   color:'#5ce0a0' },
+    'Tennis':       { bg:'rgba(224,200,92,0.12)',  color:'#e0c85c' },
+    'F1':           { bg:'rgba(224,100,92,0.12)',  color:'#e0645c' },
+    'Sports':       { bg:'rgba(160,92,224,0.12)',  color:'#a05ce0' },
+    'Boxing':       { bg:'rgba(224,130,92,0.12)',  color:'#e0825c' },
+    'Rugby':        { bg:'rgba(130,180,92,0.12)',  color:'#82b45c' },
+    'Tech':         { bg:'rgba(92,157,224,0.12)',  color:'#5c9de0' },
+    'Markets':      { bg:'rgba(92,224,160,0.1)',   color:'#5ce0a0' },
+    'Pop Culture':  { bg:'rgba(224,92,160,0.12)',  color:'#e05ca0' },
+    'Geopolitics':  { bg:'rgba(224,130,92,0.12)',  color:'#e0825c' },
+    'History':      { bg:'rgba(160,140,92,0.12)',  color:'#a08c5c' },
+    'Food & Wine':  { bg:'rgba(224,160,92,0.12)',  color:'#e0a05c' },
+    'Psychology':   { bg:'rgba(140,92,224,0.12)',  color:'#8c5ce0' },
+    'Philosophy':   { bg:'rgba(92,180,224,0.12)',  color:'#5cb4e0' },
+    'Art':          { bg:'rgba(224,92,180,0.12)',  color:'#e05cb4' },
+    'Business':     { bg:'rgba(92,224,130,0.1)',   color:'#5ce082' },
+    'Science':      { bg:'rgba(92,200,224,0.12)',  color:'#5cc8e0' },
+    'Health':       { bg:'rgba(130,224,130,0.1)',  color:'#82e082' },
+    'Etymology':    { bg:'rgba(200,200,92,0.12)',  color:'#c8c85c' },
+  };
+
+  let allCards     = [];
+  let activeFilter = 'all';
+
+  // ── Helpers ────────────────────────────────────────────────
+  function todayLabel() {
+    return new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }
+
+  function cacheKey() { return `brief_${new Date().toDateString()}`; }
+
+  // ── Setup / API key ────────────────────────────────────────
+  function saveApiKey() {
+    const key = document.getElementById('api-key-input').value.trim();
+    if (!key || key.length < 15) {
+      alert('Please paste a valid Gemini API key.');
+      return;
+    }
+    localStorage.setItem('gemini_key', key);
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  }
+
+  function showSetup() {
+    document.getElementById('setup-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    const k = localStorage.getItem('gemini_key');
+    if (k) document.getElementById('api-key-input').value = k;
+  }
+
+  // ── App init ───────────────────────────────────────────────
+  function initApp() {
+    document.getElementById('date-display').textContent = todayLabel();
+
+    // Try cache first
+    const cached = localStorage.getItem(cacheKey());
+    if (cached) {
+      try {
+        allCards = JSON.parse(cached);
+        renderCards(allCards);
+        return;
+      } catch(e) { /* stale cache, refetch */ }
+    }
+    fetchBriefing(false);
+  }
+
+  // ── Fetch from Gemini ──────────────────────────────────────
+  async function fetchBriefing(forceRefresh = false) {
+    const apiKey = localStorage.getItem('gemini_key');
+    if (!apiKey) { showSetup(); return; }
+
+    if (forceRefresh) localStorage.removeItem(cacheKey());
+
+    // UI: show loading
+    document.getElementById('loading').style.display        = 'block';
+    document.getElementById('cards-grid').style.display     = 'none';
+    document.getElementById('error-state').style.display    = 'none';
+    document.getElementById('refresh-btn').classList.add('spinning');
+
+    const today = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+    const prompt = `Today is ${today}.
+
+You are a daily briefing assistant for Ka — a 22-year-old trilingual (fluent English/Cantonese/Mandarin) Hong Kong professional starting as a JP Morgan Private Banking analyst in Hong Kong, serving ultra-high-net-worth HK clients and senior finance MDs. Ka plays football and basketball but has NEVER watched any sport on TV and has zero spectator sports knowledge.
+
+Use Google Search to find ACTUAL news from the past 48 hours.
+
+Generate EXACTLY 10 briefing cards:
+- 7 sports cards: EPL (2 cards), NBA (1), HKJC Horse Racing (1), Golf (1), and 2 others from Tennis/F1/Boxing/Rugby/Cricket — based on what actually happened today or yesterday
+- 3 general knowledge cards: rotate through Pop Culture, Tech, Markets, Food & Wine, Psychology, Philosophy, Geopolitics, History, Art, Business, Science, Health, Etymology
+
+RULES:
+- Treat Ka as knowing ZERO about watching sports. Always explain: what the league/competition IS, then the news.
+- Be specific: name actual players, actual scores, actual teams from today/yesterday.
+- Bond tips must feel natural for a 22-year-old in a client dinner or MD conversation in Hong Kong.
+- General knowledge cards: pick genuinely interesting/surprising facts or recent news. Something that makes Ka seem smart and well-read.
+- Keep content concise and punchy. No fluff.
+
+Return ONLY a raw JSON array. Absolutely no markdown, no backticks, no explanation before or after. Just the JSON array starting with [ and ending with ].
+
+Schema (follow exactly):
+[
+  {
+    "category": "EPL",
+    "title": "Short punchy headline (max 8 words)",
+    "hook": "One sentence — why this is the talking point today",
+    "content": "3-4 sentences. First: explain the league/competition from scratch if sports. Then: what happened, who starred, what it means. Plain English, no jargon.",
+    "bond_tip": "One natural sentence Ka can drop in conversation with HK clients or JPM MDs",
+    "youtube_query": "Exact YouTube search query to find today's match highlights, or null for non-sports",
+    "emoji": "single relevant emoji"
+  },
+  ...
+]`;
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            tools: [{ google_search: {} }],
+            generationConfig: { temperature: 0.65, maxOutputTokens: 4096 }
+          })
+        }
+      );
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData?.error?.message || `HTTP ${res.status}`;
+        if (res.status === 400) throw new Error(`Invalid API key or bad request: ${msg}`);
+        if (res.status === 429) throw new Error('Rate limit hit — you have used today\'s free quota. Try again tomorrow.');
+        throw new Error(msg);
+      }
+
+      const data = await res.json();
+
+      // Collect all text parts (grounding may split across parts)
+      const rawText = (data.candidates?.[0]?.content?.parts || [])
+        .filter(p => p.text)
+        .map(p => p.text)
+        .join('');
+
+      // Strip markdown fences
+      let cleaned = rawText.trim()
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/\s*```$/i, '');
+
+      // Extract JSON array
+      const s = cleaned.indexOf('[');
+      const e = cleaned.lastIndexOf(']');
+      if (s === -1 || e === -1) throw new Error('Response did not contain a JSON array. The model may have returned an error message instead. Try refreshing.');
+
+      allCards = JSON.parse(cleaned.substring(s, e + 1));
+      if (!Array.isArray(allCards) || allCards.length === 0) throw new Error('Empty cards array returned.');
+
+      // Cache
+      localStorage.setItem(cacheKey(), JSON.stringify(allCards));
+      renderCards(allCards);
+
+    } catch (err) {
+      console.error('Fetch error:', err);
+      document.getElementById('loading').style.display     = 'none';
+      document.getElementById('error-state').style.display = 'block';
+      document.getElementById('error-msg').textContent     = `⚠ ${err.message}`;
+    } finally {
+      document.getElementById('refresh-btn').classList.remove('spinning');
+    }
+  }
+
+  // ── Render cards ───────────────────────────────────────────
+  function renderCards(cards) {
+    document.getElementById('loading').style.display    = 'none';
+    document.getElementById('cards-grid').style.display = 'grid';
+
+    const grid = document.getElementById('cards-grid');
+    grid.innerHTML = '';
+
+    cards.forEach((card, i) => {
+      const col = CAT_COLORS[card.category] || { bg:'rgba(201,168,76,0.12)', color:'#c9a84c' };
+      const ytUrl = card.youtube_query
+        ? `https://www.youtube.com/results?search_query=${encodeURIComponent(card.youtube_query)}`
+        : null;
+
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.dataset.category = card.category;
+      el.style.animationDelay = `${i * 0.045}s`;
+      el.style.setProperty('--card-accent', col.color);
+
+      el.innerHTML = `
+        <div class="card-top">
+          <span class="card-category" style="background:${col.bg};color:${col.color}">${card.category}</span>
+          <span class="card-emoji">${card.emoji || '📰'}</span>
+        </div>
+        <div class="card-title">${card.title}</div>
+        <div class="card-hook">${card.hook}</div>
+        <div class="card-content">${card.content}</div>
+        <div class="bond-tip">
+          <div class="bond-label">💬 Use this with clients</div>
+          <div class="bond-text">${card.bond_tip}</div>
+        </div>
+        ${ytUrl ? `<a href="${ytUrl}" target="_blank" rel="noopener" class="yt-link">▶ Watch highlights</a>` : ''}
+      `;
+
+      grid.appendChild(el);
+    });
+
+    // Re-apply current filter
+    applyFilter(activeFilter);
+  }
+
+  // ── Filter ─────────────────────────────────────────────────
+  function filterCards(filter, btn) {
+    activeFilter = filter;
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    applyFilter(filter);
+  }
+
+  function applyFilter(filter) {
+    document.querySelectorAll('.card').forEach(card => {
+      const cat = card.dataset.category;
+      let show = false;
+      if      (filter === 'all')     show = true;
+      else if (filter === 'sports')  show = SPORTS_CATS.includes(cat);
+      else if (filter === 'culture') show = CULTURE_CATS.includes(cat) && !SPORTS_CATS.includes(cat);
+      else                           show = cat === filter;
+      card.style.display = show ? '' : 'none';
+    });
+  }
+
+  // ── Bootstrap ──────────────────────────────────────────────
+  window.addEventListener('load', () => {
+    const key = localStorage.getItem('gemini_key');
+    if (key) {
+      document.getElementById('setup-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      initApp();
+    }
+  });
+
+  document.getElementById('api-key-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveApiKey();
+  });
+</script>
+</body>
+</html>
